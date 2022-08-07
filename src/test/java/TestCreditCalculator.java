@@ -1,51 +1,59 @@
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.math.BigDecimal;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestCreditCalculator {
 
-    static final double EXPECTED_CREDIT_RATE = 10;
+    static final BigDecimal EXPECTED_CREDIT_RATE = new BigDecimal(10);
 
     @ParameterizedTest
     @CsvSource({"0, 100 000, 2 000 000, 1",
+            "ноль, 100 000, 2 000 000, 1",
+            "0, сто, 2 000 000, 1",
+            "0, 100 000, миллион, 1",
             "3, 2 000 000, 100 000, один",
             "1, 100 000, 2 000 000, 2",
-            "35, 500 000, 2 500 000, 3"})
-    @DisplayName("Тест работы dataVerification по проверке валидности входных параметров")
-    public void test_validParam_method(int month, int sumObject, int firstSum, String operation) {
+            "35, 500 000, 2 500 000, 3",
+            "3, 2 000 000, 100 000, 1000"})
+    @DisplayName("The text of the data Verification work on verifying the validity of input parameters")
+    public void test_validParam_method(String years, String sumObject, String firstSum, String operation) {
         // given:
         CreditCalculator calculator = new CreditCalculator();
-        boolean expected = month == 0 || month > 30 || sumObject < firstSum || operation.equals("один");
+        // Если operation.equals("один"), month.equals("ноль"),
+        //      sumObject.equals("миллион"), firstSum.equals("сто"),
+        //      Integer.parseInt(month) == 0, Integer.parseInt(month) > 30,
+        //      Integer.parseInt(sumObject) < Integer.parseInt(firstSum)
+        // возвращаем FALSE;
+        final boolean EXPECTED = false;
 
         // when:
-        var actual = calculator.dataVerification(month, sumObject, firstSum, operation);
+        var actual = calculator.dataVerification(years, sumObject, firstSum, operation);
 
         // then:
         // Проверка результата работы метода
-        assertTrue(CreditCalculator.CREDIT_RATE == EXPECTED_CREDIT_RATE);
-        assertThat(actual, equals(expected));
+        assertEquals(CreditCalculator.CREDIT_RATE.compareTo(EXPECTED_CREDIT_RATE),0);
+        assertEquals(actual, EXPECTED);
 
     }
 
     @ParameterizedTest
-    @CsvSource({"1, 100_000, 2_000_000, 2_090_000, 2",
-            "30, 550_000, 2_000_000, 16_111.11, 1",
-            "15, 550_000, 2_000_000, 3_625_000, 3"})
-    @DisplayName("Тест работы calculateMonthPay по вычислению ежемесячного платежа")
-    public void test_validResult_method(int month, int sumObject, int firstSum, String operation, int expected) {
+    @CsvSource({"1, 100000, 2000000, 2090000.00, 2",
+            "30, 550000, 2000000, 16111.11, 1",
+            "15, 550000, 2000000, 2175000.00, 3"})
+    @DisplayName("A test of calculateMonthPay's work on calculating the monthly payment")
+    public void test_validResult_method(BigDecimal years, BigDecimal firstSum, BigDecimal sumObject,
+                                        BigDecimal expected, int operation) {
         // given:
         CreditCalculator calculator = new CreditCalculator();
 
         // when:
-        var result = calculator.calculate(month, sumObject, firstSum, operation);
+        var result = calculator.calculate(years, sumObject, firstSum, operation);
 
         // then:
         // Проверка результата работы метода
-        assertThat(result, equals(expected));
+        assertEquals(result, expected);
     }
 
 }
